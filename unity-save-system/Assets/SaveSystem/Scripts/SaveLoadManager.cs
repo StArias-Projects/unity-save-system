@@ -13,17 +13,42 @@ using UnityEngine;
 
 namespace StArias.API.SaveLoadSystem
 {
-    public static class SaveLoadManager
+    public class SaveLoadManager
     {
-        private static readonly string PersistentDataPath = Application.persistentDataPath + "/";
+        private readonly string SavePath = Path.Combine(Application.persistentDataPath, "save");
 
-        private static List<GameData> GameDataSlots = new List<GameData>();
+        private List<GameData> GameDataSlots = new List<GameData>();
 
-        public static void Save()
+        private static SaveLoadManager Instance;
+
+        public SaveLoadManager()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+        }
+
+        public static SaveLoadManager GetInstance() 
+        {
+            if (Instance == null)
+            {
+                Instance = new SaveLoadManager();
+            }
+
+            return Instance;
+        }
+
+        public void Save()
         {
             try
             {
                 DebugLogger.Log("Starting to save data...", DebugColor.White);
+
+                if (!Directory.Exists(SavePath))
+                {
+                    Directory.CreateDirectory(SavePath);
+                }
 
                 foreach (var slot in GameDataSlots)
                 {
@@ -37,7 +62,8 @@ namespace StArias.API.SaveLoadSystem
                     DebugLogger.Log("Data correctly saved...", color: DebugColor.Green);
 
                     // 4. Se sobreescribe el archivo 
-                    File.WriteAllText(PersistentDataPath + slot.GameDataName, dataToSave);
+
+                    File.WriteAllText(Path.Combine(SavePath, slot.gameDataName + ".json"), dataToSave);
                 }
             }
             catch (System.Exception e)
@@ -48,57 +74,34 @@ namespace StArias.API.SaveLoadSystem
             }
         }
 
-        public static void Load()
+        public void Load()
         {
-            //if (!File.Exists(Path + FileName))
-            //{
-            //    CreateDefaultJson();
-            //}
-            //else
-            //{
-            //    try
-            //    {
-            //        LogReset();
-            //        DebugLogs("Estamos usando la ruta " + Path);
-            //        // 1. Se leen los datos del json y se transforman
-            //        var json = File.ReadAllText(Path + FileName);
-            //        _currData = JsonUtility.FromJson<DataToSave>(json);
-            //    }
-            //    catch (System.Exception e)
-            //    {
-            //        DebugLogs(e.Message);
-            //        throw new System.Exception(e.Message);
-            //    }
+            if (!Directory.Exists(SavePath))
+            {
+                Directory.CreateDirectory(SavePath);
+            }
 
-            //    // 2. Se compara el hash con el original
-            //    var originalHash = _currData.GetHash();
-            //    // Como el hash original se construyó a partir de un hash = null, primero hay que
-            //    // construir una copia, asignar su hash como null y generar el hash de la copia.
-            //    // Mirar punto 4 del método CreateDefaultJson()
-            //    var dataAux = new DataToSave(_currData);
-            //    dataAux.SetHash(null);
-            //    var hash = SecureManager.Hash(JsonUtility.ToJson(dataAux));
+            string[] files = Directory.GetFiles(SavePath + "/", "*.json");
 
-            //    if (originalHash.Equals(hash))
-            //    {
-            //        DebugLogs("Datos verificados...");
-            //    }
-            //    else
-            //    {
-            //        DebugLogs("Datos corruptos, creando unos por defecto...");
-            //        CreateDefaultJson();
-            //    }
-            //}
+            foreach (string file in files)
+            {
+                Debug.Log("Archivo encontrado: " + Path.GetFileName(file));
+
+                // Leer el contenido del archivo si lo necesitas
+                string jsonContent = File.ReadAllText(file);
+                var obj = JsonUtility.FromJson<GameData>(jsonContent);
+                //GameDataSlots.Add();
+            }
         }
 
-        public static void AddGameDataToSave(GameData gameData)
+        public void AddGameDataToSave(GameData gameData)
         {
             if (GameDataSlots.Contains(gameData))
             {
                 DebugLogger.Log("The game data is already in the list", color: DebugColor.Yellow);
                 return;
             }
-         
+
             GameDataSlots.Add(gameData);
         }
     }

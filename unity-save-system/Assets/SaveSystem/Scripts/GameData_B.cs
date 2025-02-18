@@ -14,32 +14,23 @@ using UnityEngine;
 namespace StArias.API.SaveLoadSystem
 {
     [Serializable]
+    [CreateAssetMenu(fileName = "NewGameData", menuName = "GameData", order = 0)]
+
     public class GameData_B : GameData
     {
         [SerializeField]
-        private int health = 100;
-        public int Health { get => health; }
+        public int health = 0;
 
         [SerializeField]
-        private int mana = 100;
-        public int Mana { get => mana; }
+        public int mana = 0;
 
         [SerializeField]
-        private Vector3 position = new Vector3(0, 0, 0);
-        public Vector3 Position { get => position; }
+        public Vector3 position = new Vector3(0, 0, 0);
 
-        public GameData_B(
-            string gameDataName,
-            int numHints,
-            bool premium,
-            int health,
-            int mana,
-            Vector3 position
-            ) : base(gameDataName, numHints, premium)
-        {
-            this.health = health;
-            this.mana = mana;
-            this.position = position;
-        }
+        [SerializeField]
+        public int numHints = 0;
+
+        [SerializeField]
+        public bool isPremium = false;
     }
 }

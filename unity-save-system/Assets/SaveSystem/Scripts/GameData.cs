@@ -16,33 +16,11 @@ namespace StArias.API.SaveLoadSystem
     [Serializable]
     public class GameData : ScriptableObject
     {
-        [SerializeField] private string gameDataName = "Default";
-        public string GameDataName { get { return gameDataName; } }
+        [SerializeField] 
+        public string gameDataName = "Default";
 
-
-        [SerializeField] private int numHints = 0;
-        public int NumHints { get => numHints; }
-
-        
-        [SerializeField] private bool isPremium = false;
-        public bool IsPremium { get => isPremium; }
-
-        [SerializeField] public string hash = "";
-
-        public GameData(string gameDataName, int numHints, bool isPremium)
-        {
-            this.gameDataName = gameDataName;
-            this.numHints = numHints;
-            this.isPremium = isPremium;
-        }
-
-        public GameData(GameData gameData)
-        {
-            if (gameData == null) return;
-
-            gameDataName = gameData.gameDataName;
-            numHints = gameData.numHints;
-            isPremium = gameData.isPremium;
-        }
+        [SerializeField]
+        [HideInInspector]
+        public string hash = "";
     }
 }
