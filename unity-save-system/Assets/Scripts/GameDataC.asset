@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 53ce6d04fc95e0248a07ca2e63f2026e, type: 3}
-  m_Name: GameData
+  m_Name: GameDataC
   m_EditorClassIdentifier: 
   gameDataName: DataC
-  hash: b975a98ef98526d9cca09a11555722b550a747248c3ca2aaa2ff2da5bc35d825
-  health: 100
-  mana: 100
-  position: {x: 100, y: 100, z: 100}
+  dataType: StArias.API.SaveLoadSystem.GameData_B
+  health: 1000
+  mana: 21321
+  position: {x: 121, y: 1213, z: 1231}
   numHints: 1
-  isPremium: 1
+  isPremium: 0

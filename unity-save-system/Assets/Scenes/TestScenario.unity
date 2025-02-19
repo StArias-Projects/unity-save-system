@@ -1252,7 +1252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dae71fc90fac7334d968fd4d5c440784, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slotC: {fileID: 11400000, guid: a961ad5ada97bed43954c9a917e34a4b, type: 2}
+  slotC: {fileID: 11400000, guid: 1f887a308833bc14ab0116fd70e21262, type: 2}
 --- !u!4 &707513784
 Transform:
   m_ObjectHideFlags: 0

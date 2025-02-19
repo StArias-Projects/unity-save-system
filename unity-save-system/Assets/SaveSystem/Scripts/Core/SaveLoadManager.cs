@@ -8,8 +8,9 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
+using System;
 using UnityEngine;
+using System.Reflection;
 
 namespace StArias.API.SaveLoadSystem
 {
@@ -21,15 +22,9 @@ namespace StArias.API.SaveLoadSystem
 
         private static SaveLoadManager Instance;
 
-        public SaveLoadManager()
-        {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-        }
+        private SaveLoadManager() { }
 
-        public static SaveLoadManager GetInstance() 
+        public static SaveLoadManager GetInstance()
         {
             if (Instance == null)
             {
@@ -54,17 +49,12 @@ namespace StArias.API.SaveLoadSystem
                 {
                     // 1. Add the HASH to the slot
                     var dataToSave = JsonUtility.ToJson(slot);
-                    var hash = HashGenerator.Hash(dataToSave);
-                    slot.hash = hash;
 
-                    // 2. Transform the Slot + HASH into JSON
-                    dataToSave = JsonUtility.ToJson(slot);
-                    DebugLogger.Log("Data correctly saved...", color: DebugColor.Green);
-
-                    // 4. Se sobreescribe el archivo 
-
-                    File.WriteAllText(Path.Combine(SavePath, slot.gameDataName + ".json"), dataToSave);
+                    // 2. The file is overwritten
+                    File.WriteAllText(Path.Combine(SavePath, slot.gameDataName), dataToSave);
+                    DebugLogger.Log("Data: " + slot.gameDataName + " correctly saved", color: DebugColor.Green);
                 }
+
             }
             catch (System.Exception e)
             {
@@ -81,16 +71,33 @@ namespace StArias.API.SaveLoadSystem
                 Directory.CreateDirectory(SavePath);
             }
 
-            string[] files = Directory.GetFiles(SavePath + "/", "*.json");
+            string[] files = Directory.GetFiles(SavePath + "/");
 
             foreach (string file in files)
             {
-                Debug.Log("Archivo encontrado: " + Path.GetFileName(file));
-
-                // Leer el contenido del archivo si lo necesitas
                 string jsonContent = File.ReadAllText(file);
-                var obj = JsonUtility.FromJson<GameData>(jsonContent);
-                //GameDataSlots.Add();
+                GameData slot = ScriptableObject.CreateInstance<GameData>();
+                JsonUtility.FromJsonOverwrite(jsonContent, slot);
+                string dataType = slot.GetDataType();
+
+                if (string.IsNullOrEmpty(dataType))
+                {
+                    DebugLogger.Log("Invalid file: Data type is empty or null", DebugColor.Red);
+                    return;
+                }
+
+                Type type = Type.GetType(dataType);
+
+                if (dataType == null || !typeof(GameData).IsAssignableFrom(type))
+                {
+                    Debug.LogError("Tipo desconocido o inválido: " + dataType);
+                    return;
+                }
+
+                slot = ScriptableObject.CreateInstance(dataType) as GameData;
+                JsonUtility.FromJsonOverwrite(jsonContent, slot);
+
+                DebugLogger.Log("Data: " + slot.gameDataName + " correctly loaded", color: DebugColor.Green);
             }
         }
 

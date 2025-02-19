@@ -16,11 +16,21 @@ namespace StArias.API.SaveLoadSystem
     [Serializable]
     public class GameData : ScriptableObject
     {
-        [SerializeField] 
+        [SerializeField]
         public string gameDataName = "Default";
 
         [SerializeField]
         [HideInInspector]
-        public string hash = "";
+        protected string dataType;
+
+        public GameData()
+        {
+            dataType = GetType().FullName;
+        }
+
+        public string GetDataType()
+        {
+            return dataType;
+        }
     }
 }

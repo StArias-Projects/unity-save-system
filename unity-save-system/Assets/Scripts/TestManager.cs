@@ -16,7 +16,6 @@ public class TestManager : MonoBehaviour
 
     private void Awake()
     {
-        saveLoadManager = new SaveLoadManager();
         saveLoadManager = SaveLoadManager.GetInstance();    
         saveLoadManager.Load();
     }
