@@ -7,30 +7,22 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace StArias.API.SaveLoadSystem
 {
     [Serializable]
-    public class GameData : ScriptableObject
+    [CreateAssetMenu(fileName = "MyGameData", menuName = "MyGameData", order = 0)]
+
+    public class MyGameData : GameData
     {
         [SerializeField]
-        public string gameDataName = "Default";
+        public int health = 0;
 
         [SerializeField]
-        [HideInInspector]
-        protected string dataType;
+        public int mana = 0;
 
-        public GameData()
-        {
-            dataType = GetType().FullName;
-        }
-
-        public string GetDataType()
-        {
-            return dataType;
-        }
+        [SerializeField]
+        public Vector3 position = new Vector3(0, 0, 0);
     }
 }
