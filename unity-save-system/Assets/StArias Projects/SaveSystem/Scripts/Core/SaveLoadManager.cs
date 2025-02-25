@@ -20,21 +20,26 @@ namespace StArias.API.SaveLoadSystem
     /// </summary>
     public class SaveLoadManager
     {
+        #region Variables
+
         /// <summary>
         /// The path where the game data is stored
         /// </summary>
         private readonly string _savePath = Path.Combine(Application.persistentDataPath, "save");
 
         /// <summary>
-        /// List of the saved game data. Each element is called "slot" 
+        /// Collection of the saved game data. Each element is called accesed by the ID of the game data
         /// </summary>
-        private Dictionary<string, GameData> _gameDataSlots = new Dictionary<string, GameData>();
+        private Dictionary<string, GameData> _gameDataCollection = new Dictionary<string, GameData>();
 
         /// <summary>
         /// Singleton instance of the SaveLoadManager
         /// </summary>
         private static SaveLoadManager Instance;
 
+        #endregion
+
+        #region Constructor
         private SaveLoadManager() { }
 
         /// <summary>
@@ -50,72 +55,69 @@ namespace StArias.API.SaveLoadSystem
             return Instance;
         }
 
-        /// <summary>
-        /// Creates the directory where the game data will be saved
-        /// </summary>
-        private void CreateSavePathDir()
-        {
-            if (Directory.Exists(_savePath))
-                return;
+        #endregion
 
-            Directory.CreateDirectory(_savePath);
-        }
+        #region API
 
         /// <summary>
-        /// Adds a new game data to the list.
+        /// Adds a new game data to the collection.
         /// <para></para>
         /// If a game data with the same ID already exists, a new one will be created with a different ID
         /// <para></para>
-        /// The list of the game data is accessible via <see cref="GetGameDataSlots"/>.
+        /// The collection of the game data is accessible via <see cref="GetGameDataCollection"/>.
         /// </summary>
         /// <param name="dataToSave">The game data to be saved</param>
-        public void SaveNewData(GameData dataToSave)
+        /// <param name="overwrite">If true, the data will be overwritten if it already exists</param>
+        /// <returns>The ID of the saved game data</returns>
+        public string SaveNewData(GameData dataToSave, bool overwrite = false)
         {
             try
             {
                 string originalID = dataToSave.id;
+                var gameData = ScriptableObject.Instantiate(dataToSave);
+
                 CreateSavePathDir();
                 DebugLogger.Log($"Saving {originalID}...", DebugColor.White);
 
                 // 1. Check if the data already exists
-                bool dataExist = _gameDataSlots.ContainsKey(originalID);
-                int i = 0;
+                bool dataExist = _gameDataCollection.ContainsKey(originalID);
+                int newIDSufix = 0;
 
-                while (dataExist)
+                while (!overwrite && dataExist)
                 {
-                    dataToSave.id = originalID + "_" + i;
-                    dataExist = _gameDataSlots.ContainsKey(dataToSave.id);
+                    gameData.id = originalID + "_" + newIDSufix;
+                    dataExist = _gameDataCollection.ContainsKey(gameData.id);
                     if (!dataExist)
                         DebugLogger.Log($"The game data {originalID} already exists. " +
-                            $"The game data {dataToSave.id} will be saved instead", DebugColor.Yellow);
+                            $"The game data {gameData.id} will be saved instead", DebugColor.Yellow);
+                    newIDSufix++;
                 }
 
-                _gameDataSlots[dataToSave.id] = dataToSave;
+                _gameDataCollection[gameData.id] = dataToSave;
 
                 // 2. Save the game data to a file
-                string sDataToSave = JsonUtility.ToJson(dataToSave);
-                File.WriteAllText(Path.Combine(_savePath, dataToSave.id), sDataToSave);
+                string sDataToSave = JsonUtility.ToJson(gameData);
+                File.WriteAllText(Path.Combine(_savePath, gameData.id), sDataToSave);
 
-                DebugLogger.Log("Data: " + dataToSave.id + " correctly saved", color: DebugColor.Green);
+                DebugLogger.Log("Data: " + gameData.id + " correctly saved", color: DebugColor.Green);
+
+                return gameData.id;
             }
             catch (System.Exception e)
             {
                 DebugLogger.Log("- Error when saving data -", color: DebugColor.Red);
                 DebugLogger.Log(e.Message, color: DebugColor.Red);
+
+                return "";
             }
         }
 
-        public void SaveExistingData(GameData dataToSave)
-        {
-
-        }
-
         /// <summary>
-        /// Reads the saved data from the disk and load it into the game data list
+        /// Initialize the game data collection by reading the saved data from the disk
         /// <para></para>
-        /// The list of the game data is accessible via <see cref="GetGameDataSlots"/>.
+        /// The collection of the game data is accessible via <see cref="GetGameDataCollection"/>.
         /// </summary>
-        public void ReadDataFromDisk()
+        public void InitGameDataCollection()
         {
             CreateSavePathDir();
 
@@ -151,47 +153,41 @@ namespace StArias.API.SaveLoadSystem
                 JsonUtility.FromJsonOverwrite(dataContent, loadedData);
 
                 DebugLogger.Log("Data: " + loadedData.id + " correctly loaded", color: DebugColor.Green);
-                _gameDataSlots[loadedData.id] = loadedData;
+                _gameDataCollection[loadedData.id] = loadedData;
             }
         }
 
         /// <summary>
-        /// Gets the game data by its key. The key is the id attached to the <see cref="GameData"/>
+        /// Gets a game data by its ID. Refer to <see cref="GameData.id"/>
         /// <para></para>
-        /// Sees also <see cref="GetGameDataSlots"/>
+        /// Sees also <see cref="GetGameDataCollection"/>
         /// </summary>
-        /// <param name="dataIndex">Position of the game data in the list of slots</param>
-        public GameData GetGameDataByKey(string gameDataID)
+        /// <param name="gameDataID">The ID of the game data</param>
+        public GameData GetGameDataByID(string gameDataID)
         {
-            if (!_gameDataSlots.ContainsKey(gameDataID))
+            if (!_gameDataCollection.ContainsKey(gameDataID))
             {
                 DebugLogger.Log($"The game data with the ID {gameDataID} does not exist", color: DebugColor.Red);
                 return null;
             }
 
-            //if (dataIndex < 0 || dataIndex >= _gameDataSlots.Count)
-            //{
-            //    DebugLogger.Log($"The index {dataIndex} is out of range", color: DebugColor.Red);
-            //    return null;
-            //}
-
-            return _gameDataSlots[gameDataID];
+            return _gameDataCollection[gameDataID];
         }
 
         /// <summary>
-        /// Gets the list of the current saved data
+        /// Gets a copy of the collection of the current saved data
         /// </summary>
-        public Dictionary<string, GameData> GetGameDataSlots()
+        public Dictionary<string, GameData> GetGameDataCollection()
         {
-            return _gameDataSlots;
+            return new Dictionary<string, GameData>(_gameDataCollection);
         }
 
         /// <summary>
         /// Allows a cast from <see cref="GameData"/> to any type that inherits it
         /// </summary>
         /// <typeparam name="T">The type to cast to</typeparam>
-        /// <param name="dataToCast">The data to be cast</param>
-        public T CastFromGameData<T>(GameData dataToCast) where T : GameData
+        /// <param name="dataToCast">The game data to be cast</param>
+        public static T CastFromGameData<T>(GameData dataToCast) where T : GameData
         {
             if (dataToCast == null)
             {
@@ -201,9 +197,26 @@ namespace StArias.API.SaveLoadSystem
 
             if (dataToCast is T castedData)
                 return castedData;
-         
+
             Debug.LogError("CastFromGameData - The provided GameData object cannot be cast to the specified type.");
             return null;  // or throw an exception if you prefer
         }
+
+        #endregion
+
+        #region Misc
+
+        /// <summary>
+        /// Creates the directory where the game data will be saved
+        /// </summary>
+        private void CreateSavePathDir()
+        {
+            if (Directory.Exists(_savePath))
+                return;
+
+            Directory.CreateDirectory(_savePath);
+        }
+
+        #endregion
     }
 }
