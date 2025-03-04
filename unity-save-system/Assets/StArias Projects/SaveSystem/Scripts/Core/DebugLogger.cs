@@ -30,11 +30,6 @@ namespace StArias.API.SaveLoadSystem
     public static class DebugLogger
     {
         /// <summary>
-        /// The prefix for all the log messages
-        /// </summary>
-        private static readonly string LogPrefix = "SaveLoadManager - ";
-
-        /// <summary>
         /// Enable or disable the debug log
         /// </summary>
         public static bool EnableDebugLog = true;
@@ -84,13 +79,14 @@ namespace StArias.API.SaveLoadSystem
         /// </summary>
         /// <param name="message">The message to be displayed</param>
         /// <param name="color">The color of the message to be displayed</param>
-        public static void Log(string message, DebugColor color = DebugColor.UnityDefault)
+        /// <param name="prefix">The string to be displayed at the start of the message</param>
+        public static void Log(string message, DebugColor color = DebugColor.UnityDefault, string prefix = "SaveLoadManager - ")
         {
             if (!EnableDebugLog)
                 return;
 
             string debugColor = SelectLogColor(color);
-            Debug.Log($"{debugColor}{LogPrefix}{message}</color>");
+            Debug.Log($"{debugColor}{prefix}{message}</color>");
         }
     }
 }

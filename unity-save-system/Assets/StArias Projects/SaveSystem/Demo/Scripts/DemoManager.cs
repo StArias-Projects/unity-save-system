@@ -10,6 +10,9 @@ using UnityEngine;
 using StArias.API.SaveLoadSystem;
 using UnityEngine.UI;
 using TMPro;
+using System.Reflection;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace StArias.API.Demo
 {
@@ -22,41 +25,28 @@ namespace StArias.API.Demo
         /// </summary>
         private SaveLoadManager _saveLoadManager;
 
-        private const string SAVE_MODE_TEXT = "Toggle Save/LoadMode\nSAVE MODE";
-        private const string LOAD_MODE_TEXT = "Toggle Save/LoadMode\nLOAD MODE";
+        private List<GameObject> _objectsToDelete = new List<GameObject>();
+
+        private bool _isRemovingObjectsRunning = true;
 
         #endregion
 
         #region Editor Variables
 
         [Header("Save Load Mode")]
-        [SerializeField]
-        private bool _isSaveMode = true;
 
         [SerializeField]
-        private Button _toggleSaveLoadButton;
-
-        [SerializeField]
-        private TextMeshProUGUI _toggleSaveLoadText;
-
-        [SerializeField]
-        private GameObject _SaveModeParent;
-
-        [SerializeField]
-        private GameObject _LoadModeParent;
+        private bool _displayLogs = true;
 
         [Header("Data Creation")]
         [SerializeField]
-        private Button _dataAButton;
+        private Button _saveCustomGameDataButton;
 
         [SerializeField]
-        private Button _dataBButton;
+        private Button _saveDemoGameDataButton;
 
         [SerializeField]
-        private Button _dataCButton;
-
-        [SerializeField]
-        private GameData _slotC;
+        private GameData _demoGameData;
 
         [Header("Data Loader")]
 
@@ -73,50 +63,29 @@ namespace StArias.API.Demo
 
         private void Awake()
         {
+            DebugLogger.EnableDebugLog = _displayLogs;
+            StartCoroutine(RemoveDataFromUICollection());
+
             _saveLoadManager = SaveLoadManager.GetInstance();
             _saveLoadManager.InitGameDataCollection();
 
-            InitSaveLoadModeButtons();
             InitSaveDataButtons();
             InitLoadDataButtons();
         }
 
         #region Init
 
-        private void InitSaveLoadModeButtons()
-        {
-            _toggleSaveLoadText.text = _isSaveMode ? SAVE_MODE_TEXT : LOAD_MODE_TEXT;
-
-            _SaveModeParent.SetActive(_isSaveMode);
-            _LoadModeParent.SetActive(!_isSaveMode);
-
-            _toggleSaveLoadButton.onClick.AddListener(() =>
-            {
-                _isSaveMode = !_isSaveMode;
-
-                _SaveModeParent.SetActive(_isSaveMode);
-                _LoadModeParent.SetActive(!_isSaveMode);
-
-                _toggleSaveLoadText.text = _isSaveMode ? SAVE_MODE_TEXT : LOAD_MODE_TEXT;
-            });
-        }
-
         private void InitSaveDataButtons()
         {
-            if (_dataAButton != null)
-                _dataAButton.onClick.AddListener(SaveDataA);
+            if (_saveCustomGameDataButton != null)
+                _saveCustomGameDataButton.onClick.AddListener(SaveCustomGameData);
             else
-                DebugLogger.Log("Data A Button is null", DebugColor.Red);
+                DebugLogger.Log("Save Custom Game Data Button is null", DebugColor.Red);
 
-            if (_dataBButton != null)
-                _dataBButton.onClick.AddListener(SaveDataB);
+            if (_saveDemoGameDataButton != null)
+                _saveDemoGameDataButton.onClick.AddListener(SaveDemoGameData);
             else
-                DebugLogger.Log("Data B Button is null", DebugColor.Red);
-
-            if (_dataCButton != null)
-                _dataCButton.onClick.AddListener(SaveDataC);
-            else
-                DebugLogger.Log("Data C Button is null", DebugColor.Red);
+                DebugLogger.Log("Demo Editor Game Data Button is null", DebugColor.Red);
         }
 
         private void InitLoadDataButtons()
@@ -130,17 +99,31 @@ namespace StArias.API.Demo
 
                 sizeDelta.y += _loadRectTransformPrefab.sizeDelta.y * 1.05f;
                 RectTransform obj = Instantiate(_loadRectTransformPrefab, _loadButtonsParent);
-                obj.localPosition = -pos;
-                obj.GetComponentInChildren<TextMeshProUGUI>().text = collectionData.Key;
+                var child0 = obj.GetChild(0);
+                var child1 = obj.GetChild(1);
 
-                var objButton = obj.GetComponent<Button>();
-                objButton.onClick.AddListener(() =>
+                obj.localPosition = -pos;
+
+
+                child0.GetComponentInChildren<TextMeshProUGUI>().text = collectionData.Key;
+                Button objButton0 = child0.GetComponent<Button>();
+                objButton0.onClick.AddListener(() =>
                 {
-                    MyGameData data = SaveLoadManager.CastFromGameData<MyGameData>(collectionData.Value);
-                    currentDataText.text = $"ID: {data.id}\n" +
-                    $"Health: {data.health}\n" +
-                    $"Mana: {data.mana}\n" +
-                    $"Position: {data.position}";
+                    MyGameData data = SaveLoadHelper.CastFromGameData<MyGameData>(collectionData.Value);
+
+                    currentDataText.text = "";
+                    FieldInfo[] fields = SaveLoadHelper.GetGameDataFields<MyGameData>();
+                    foreach (FieldInfo field in fields)
+                    {
+                        currentDataText.text += $"{field.Name}: {field.GetValue(data)}\n";
+                    }
+                });
+
+                Button objButton1 = child1.GetComponent<Button>();
+                objButton1.onClick.AddListener(() =>
+                {
+                    _saveLoadManager.DeleteDataByID(collectionData.Value.id);
+                    _objectsToDelete.Add(obj.gameObject);
                 });
             }
 
@@ -149,7 +132,10 @@ namespace StArias.API.Demo
 
         #endregion
 
-        private void SaveDataA()
+        /// <summary>
+        /// Save the created custom game data
+        /// </summary>
+        private void SaveCustomGameData()
         {
             if (_saveLoadManager == null)
             {
@@ -157,17 +143,20 @@ namespace StArias.API.Demo
                 return;
             }
 
-            MyGameData slotA = ScriptableObject.CreateInstance<MyGameData>();
-            slotA.name = slotA.id = "DataA";
-            slotA.health = 100;
-            slotA.mana = 150;
-            slotA.position = new Vector3(100, 50, 35);
+            MyGameData gameData = ScriptableObject.CreateInstance<MyGameData>();
+            gameData.name = gameData.id = "Script_Game_Data";
+            gameData.health = 100;
+            gameData.mana = 150;
+            gameData.position = new Vector3(100, 50, 35);
 
-            string gameDataID = _saveLoadManager.SaveNewData(slotA);
-            UpdateGameDataList(gameDataID);
+            string gameDataID = _saveLoadManager.SaveNewData(gameData);
+            AddGameDataToTheCollection(gameDataID);
         }
 
-        private void SaveDataB()
+        /// <summary>
+        /// Saves the game data using the Scriptable Object created on the Editor
+        /// </summary>
+        private void SaveDemoGameData()
         {
             if (_saveLoadManager == null)
             {
@@ -175,38 +164,22 @@ namespace StArias.API.Demo
                 return;
             }
 
-            MyGameData slotB = ScriptableObject.CreateInstance<MyGameData>();
-            slotB.name = slotB.id = "DataB";
-            slotB.health = 50;
-            slotB.mana = 50;
-            slotB.position = new Vector3(1, 2, 3);
-
-            string gameDataID = _saveLoadManager.SaveNewData(slotB);
-            UpdateGameDataList(gameDataID);
-        }
-
-        private void SaveDataC()
-        {
-            if (_saveLoadManager == null)
+            if (_demoGameData == null)
             {
-                DebugLogger.Log("SaveLoadManager is null", DebugColor.Red);
+                DebugLogger.Log("Demo Game Data is null", DebugColor.Red);
                 return;
             }
 
-            if (_slotC == null)
-            {
-                DebugLogger.Log("Slot C is null", DebugColor.Red);
-                return;
-            }
-
-            string gameDataID = _saveLoadManager.SaveNewData(_slotC);
-            UpdateGameDataList(gameDataID);
+            string gameDataID = _saveLoadManager.SaveNewData(_demoGameData);
+            AddGameDataToTheCollection(gameDataID);
         }
 
-        private void UpdateGameDataList(string gameDataID)
+        private void AddGameDataToTheCollection(string gameDataID)
         {
             // 1. Creation of the object
             RectTransform obj = Instantiate(_loadRectTransformPrefab, _loadButtonsParent);
+            var child0 = obj.GetChild(0);
+            var child1 = obj.GetChild(1);
 
             // 2. Positioning the object
             Vector2 sizeDelta = _loadButtonsParent.sizeDelta;
@@ -217,16 +190,54 @@ namespace StArias.API.Demo
             _loadButtonsParent.sizeDelta = sizeDelta;
 
             // 4. Update the object attributes
-            obj.GetComponentInChildren<TextMeshProUGUI>().text = gameDataID;
-            var objButton = obj.GetComponent<Button>();
-            objButton.onClick.AddListener(() =>
+            child0.GetComponentInChildren<TextMeshProUGUI>().text = gameDataID;
+            Button objButton0 = child0.GetComponent<Button>();
+            objButton0.onClick.AddListener(() =>
             {
-                MyGameData data = SaveLoadManager.CastFromGameData<MyGameData>(_saveLoadManager.GetGameDataByID(gameDataID));
-                currentDataText.text = $"ID: {data.id}\n" +
-                $"Health: {data.health}\n" +
-                $"Mana: {data.mana}\n" +
-                $"Position: {data.position}";
+                MyGameData data = SaveLoadHelper.CastFromGameData<MyGameData>(_saveLoadManager.GetGameDataByID(gameDataID));
+
+                currentDataText.text = "";
+                FieldInfo[] fields = SaveLoadHelper.GetGameDataFields<MyGameData>();
+                foreach (FieldInfo field in fields)
+                {
+                    currentDataText.text += $"{field.Name}: {field.GetValue(data)}\n";
+                }
             });
+
+            Button objButton1 = child1.GetComponent<Button>();
+            objButton1.onClick.AddListener(() =>
+            {
+                _saveLoadManager.DeleteDataByID(gameDataID);
+                _objectsToDelete.Add(obj.gameObject);
+            });
+        }
+
+        IEnumerator RemoveDataFromUICollection() 
+        {
+            while (_isRemovingObjectsRunning)
+            {
+                yield return new WaitUntil(() => _objectsToDelete.Count > 0);
+
+                for (int i = _objectsToDelete.Count - 1; i >= 0; i--)
+                {
+                    Destroy(_objectsToDelete[i]);
+                }
+
+                UpdateGameDataCollection();
+            }
+        }
+
+        private void UpdateGameDataCollection()
+        {
+            Vector2 sizeDelta = Vector2.zero;
+
+            for (int i = 0; i < _loadButtonsParent.childCount; i++)
+            {
+                _loadButtonsParent.GetChild(i).GetComponent<RectTransform>().localPosition = new Vector2(0, -sizeDelta.y);
+                sizeDelta.y += _loadRectTransformPrefab.sizeDelta.y * 1.05f;
+            }
+
+            _loadButtonsParent.sizeDelta = sizeDelta;
         }
     }
 }

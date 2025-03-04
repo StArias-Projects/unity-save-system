@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace StArias.API.SaveLoadSystem
 {
@@ -26,6 +27,8 @@ namespace StArias.API.SaveLoadSystem
         /// The path where the game data is stored
         /// </summary>
         private readonly string _savePath = Path.Combine(Application.persistentDataPath, "save");
+
+        private readonly string _fileExtension = "";
 
         /// <summary>
         /// Collection of the saved game data. Each element is called accesed by the ID of the game data
@@ -89,7 +92,7 @@ namespace StArias.API.SaveLoadSystem
                     dataExist = _gameDataCollection.ContainsKey(gameData.id);
                     if (!dataExist)
                         DebugLogger.Log($"The game data {originalID} already exists. " +
-                            $"The game data {gameData.id} will be saved instead", DebugColor.Yellow);
+                            $"The game data {gameData.id} will be saved instead", DebugColor.Yellow, "SaveNewData - ");
                     newIDSufix++;
                 }
 
@@ -97,16 +100,14 @@ namespace StArias.API.SaveLoadSystem
 
                 // 2. Save the game data to a file
                 string sDataToSave = JsonUtility.ToJson(gameData);
-                File.WriteAllText(Path.Combine(_savePath, gameData.id), sDataToSave);
-
-                DebugLogger.Log("Data: " + gameData.id + " correctly saved", color: DebugColor.Green);
+                File.WriteAllText(Path.Combine(_savePath, gameData.id + _fileExtension), sDataToSave);
 
                 return gameData.id;
             }
             catch (System.Exception e)
             {
-                DebugLogger.Log("- Error when saving data -", color: DebugColor.Red);
-                DebugLogger.Log(e.Message, color: DebugColor.Red);
+                DebugLogger.Log("Error when saving data", color: DebugColor.Red, "SaveNewData - ");
+                DebugLogger.Log(e.Message, color: DebugColor.Red, "SaveNewData - ");
 
                 return "";
             }
@@ -136,7 +137,7 @@ namespace StArias.API.SaveLoadSystem
                 string savedType = loadedData.GetDataType();
                 if (string.IsNullOrEmpty(savedType))
                 {
-                    DebugLogger.Log("Invalid file: Data type is empty or null", DebugColor.Red);
+                    DebugLogger.Log($"Invalid file: Data type {savedType} is not valid or null", DebugColor.Red, "InitGameDataCollection - ");
                     continue;
                 }
 
@@ -144,7 +145,7 @@ namespace StArias.API.SaveLoadSystem
 
                 if (savedType == null || !typeof(GameData).IsAssignableFrom(dataType))
                 {
-                    Debug.LogError("The type of the data is invalid or unknown: " + savedType);
+                    DebugLogger.Log("The type of the data is invalid or unknown: " + savedType, DebugColor.Red, "InitGameDataCollection - ");
                     continue;
                 }
 
@@ -152,9 +153,27 @@ namespace StArias.API.SaveLoadSystem
                 loadedData = ScriptableObject.CreateInstance(savedType) as GameData;
                 JsonUtility.FromJsonOverwrite(dataContent, loadedData);
 
-                DebugLogger.Log("Data: " + loadedData.id + " correctly loaded", color: DebugColor.Green);
                 _gameDataCollection[loadedData.id] = loadedData;
             }
+        }
+
+        /// <summary>
+        /// Remove the game data from the disk and from 
+        /// </summary>
+        /// <param name="gameDataID"></param>
+        public void DeleteDataByID(string gameDataID)
+        {
+            string fileName = Path.Combine(Path.Combine(_savePath, gameDataID + _fileExtension));
+            if (_gameDataCollection.ContainsKey(gameDataID))
+                _gameDataCollection.Remove(gameDataID);
+
+            if (!File.Exists(fileName))
+            {
+                DebugLogger.Log($"The game data with the ID {gameDataID} does not exist in disk", color: DebugColor.Red, "DeleteDataByID - ");
+                return;
+            }
+
+            File.Delete(fileName);
         }
 
         /// <summary>
@@ -167,7 +186,7 @@ namespace StArias.API.SaveLoadSystem
         {
             if (!_gameDataCollection.ContainsKey(gameDataID))
             {
-                DebugLogger.Log($"The game data with the ID {gameDataID} does not exist", color: DebugColor.Red);
+                DebugLogger.Log($"The game data with the ID {gameDataID} does not exist", color: DebugColor.Red, "GetGameDataByID - ");
                 return null;
             }
 
@@ -180,26 +199,6 @@ namespace StArias.API.SaveLoadSystem
         public Dictionary<string, GameData> GetGameDataCollection()
         {
             return new Dictionary<string, GameData>(_gameDataCollection);
-        }
-
-        /// <summary>
-        /// Allows a cast from <see cref="GameData"/> to any type that inherits it
-        /// </summary>
-        /// <typeparam name="T">The type to cast to</typeparam>
-        /// <param name="dataToCast">The game data to be cast</param>
-        public static T CastFromGameData<T>(GameData dataToCast) where T : GameData
-        {
-            if (dataToCast == null)
-            {
-                DebugLogger.Log("CastFromGameData - The provided GameData object is null", DebugColor.Red);
-                return null;
-            }
-
-            if (dataToCast is T castedData)
-                return castedData;
-
-            Debug.LogError("CastFromGameData - The provided GameData object cannot be cast to the specified type.");
-            return null;  // or throw an exception if you prefer
         }
 
         #endregion
