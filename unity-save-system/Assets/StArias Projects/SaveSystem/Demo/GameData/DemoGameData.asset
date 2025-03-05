@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb8976bb9caffc64c939b04620fa496b, type: 3}
   m_Name: DemoGameData
   m_EditorClassIdentifier: 
-  id: DataC
+  id: DemoGameData
   dataType: StArias.API.SaveLoadSystem.MyGameData
   health: 2312
   mana: 902

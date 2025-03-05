@@ -63,24 +63,27 @@ namespace StArias.API.SaveLoadSystem
         #region API
 
         /// <summary>
-        /// Adds a new game data to the collection.
+        /// Adds a new game data to the collection
         /// <para></para>
-        /// If a game data with the same ID already exists, a new one will be created with a different ID
+        /// If a game data with the same ID already exists, a new one will be created with a different ID. Thi
         /// <para></para>
         /// The collection of the game data is accessible via <see cref="GetGameDataCollection"/>.
         /// </summary>
         /// <param name="dataToSave">The game data to be saved</param>
         /// <param name="overwrite">If true, the data will be overwritten if it already exists</param>
-        /// <returns>The ID of the saved game data</returns>
-        public string SaveNewData(GameData dataToSave, bool overwrite = false)
+        /// <returns>The final GameData that was stored</returns>
+        public GameData SaveNewData(GameData dataToSave, bool overwrite = false)
         {
             try
             {
                 string originalID = dataToSave.id;
-                var gameData = ScriptableObject.Instantiate(dataToSave);
+                GameData gameData = ScriptableObject.Instantiate(dataToSave);
+                if (gameData.id == "")
+                {
+                    gameData.id = "data";
+                }
 
                 CreateSavePathDir();
-                DebugLogger.Log($"Saving {originalID}...", DebugColor.White);
 
                 // 1. Check if the data already exists
                 bool dataExist = _gameDataCollection.ContainsKey(originalID);
@@ -102,14 +105,14 @@ namespace StArias.API.SaveLoadSystem
                 string sDataToSave = JsonUtility.ToJson(gameData);
                 File.WriteAllText(Path.Combine(_savePath, gameData.id + _fileExtension), sDataToSave);
 
-                return gameData.id;
+                return gameData;
             }
             catch (System.Exception e)
             {
                 DebugLogger.Log("Error when saving data", color: DebugColor.Red, "SaveNewData - ");
                 DebugLogger.Log(e.Message, color: DebugColor.Red, "SaveNewData - ");
 
-                return "";
+                return null;
             }
         }
 
@@ -186,7 +189,7 @@ namespace StArias.API.SaveLoadSystem
         {
             if (!_gameDataCollection.ContainsKey(gameDataID))
             {
-                DebugLogger.Log($"The game data with the ID {gameDataID} does not exist", color: DebugColor.Red, "GetGameDataByID - ");
+                //DebugLogger.Log($"The game data with the ID {gameDataID} does not exist", color: DebugColor.Red, "GetGameDataByID - ");
                 return null;
             }
 

@@ -17,10 +17,12 @@ namespace StArias.API.SaveLoadSystem
     public class MyGameData : GameData
     {
         [SerializeField]
-        public int health = 0;
+        [Min(0)]
+        public uint health = 0;
 
         [SerializeField]
-        public int mana = 0;
+        [Min(0)]
+        public uint mana = 0;
 
         [SerializeField]
         public Vector3 position = new Vector3(0, 0, 0);
