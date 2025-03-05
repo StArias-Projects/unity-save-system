@@ -2,27 +2,43 @@
 
 Save System is a personal and free tool-project to save the data of video games on different platforms.
 
-#### UNITY 2020.3.X or HIGHER
+The Save System allows you to save the progress of a video game on the disk of the device using the 
+[Unity Persistence Data Path](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Application-persistentDataPath.html).
+
+The tool is intended to be open-source to let you modify and custom the scripts as you need for your own project.
+
+Please, refer to the [Documentation]() to know more about how use it.
+
+### UNITY 2020.3.X or HIGHER
+### Supported on Android, iOS, Windows + UWP, macOS, and Editor
 
 ## Key Points
 
-🔹Editor Save
+✅ JSON Support
 
-🔹Auto Save
+✅ Cross Platform
 
-🔹JSON Support
+✅ Different Video Games
 
-🔹Cross Platform
+✅ Data Serialization
 
-🔹Different Video Games
+✅ File Management
 
-🔹Data Serialization & Encryption 
+✅ Simple and easy to use
 
-🔹File Management
+✅ Custom Debug Logger with different colours
 
-🔹State Persistence
+## Possible Improvements
 
-🔹Error Recovery
+🔹 Data Encryption
+
+🔹 Error Recovery
+
+🔹 Custom Data Path
+
+🔹 More file extensions support
+
+🔹 File Management
 
 ## References
 
@@ -30,7 +46,7 @@ Save System is a personal and free tool-project to save the data of video games 
 
 🔗[Abhishek Smith](https://www.linkedin.com/in/abhisheketh/)
 
-🔗[Personal College Project](https://github.com/Moviles-21-22)
+🔗[A Personal College Project](https://github.com/Moviles-21-22)
 
 ## License
 [MPL 2.0](LICENSE)
