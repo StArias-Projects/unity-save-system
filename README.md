@@ -7,7 +7,8 @@ The Save System allows you to save the progress of a video game on the disk of t
 
 The tool is intended to be open-source to let you modify and custom the scripts as you need for your own project.
 
-Please, refer to the [Documentation]() to know more about how use it.
+- [Unity Save System SDK Documentation](./documentation/unity-save-system-documentation.md)
+- [Tutorial]()
 
 ### UNITY 2020.3.X or HIGHER
 ### Supported on Android, iOS, Windows + UWP, macOS, and Editor

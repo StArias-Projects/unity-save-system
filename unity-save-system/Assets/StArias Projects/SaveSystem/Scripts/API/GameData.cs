@@ -20,7 +20,7 @@ namespace StArias.API.SaveLoadSystem
     public class GameData : ScriptableObject
     {
         /// <summary>
-        /// The name of the game data
+        /// The ID of the game data
         /// </summary>
         [SerializeField]
         public string id = "GameData";

@@ -31,7 +31,7 @@ namespace StArias.API.SaveLoadSystem
         private readonly string _fileExtension = "";
 
         /// <summary>
-        /// Collection of the saved game data. Each element is called accesed by the ID of the game data
+        /// Collection of the saved game data. Each element is accesed by the ID of the game data
         /// </summary>
         private Dictionary<string, GameData> _gameDataCollection = new Dictionary<string, GameData>();
 
@@ -65,7 +65,7 @@ namespace StArias.API.SaveLoadSystem
         /// <summary>
         /// Adds a new game data to the collection
         /// <para></para>
-        /// If a game data with the same ID already exists, a new one will be created with a different ID. Thi
+        /// If a game data with the same ID already exists, a new one will be created with a different ID.
         /// <para></para>
         /// The collection of the game data is accessible via <see cref="GetGameDataCollection"/>.
         /// </summary>
@@ -117,7 +117,7 @@ namespace StArias.API.SaveLoadSystem
         }
 
         /// <summary>
-        /// Initialize the game data collection by reading the saved data from the disk
+        /// Initializes the game data collection by reading the saved data from the disk
         /// <para></para>
         /// The collection of the game data is accessible via <see cref="GetGameDataCollection"/>.
         /// </summary>
@@ -161,9 +161,9 @@ namespace StArias.API.SaveLoadSystem
         }
 
         /// <summary>
-        /// Remove the game data from the disk and from 
+        /// Removes the game data from the disk and from the collection if it exists.
         /// </summary>
-        /// <param name="gameDataID"></param>
+        /// <param name="gameDataID">The ID of the game data to delete</param>
         public void DeleteDataByID(string gameDataID)
         {
             string fileName = Path.Combine(Path.Combine(_savePath, gameDataID + _fileExtension));

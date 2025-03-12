@@ -75,7 +75,7 @@ namespace StArias.API.SaveLoadSystem
         /// <para></para>
         /// It is possible to disable the debug log by setting <see cref="EnableDebugLog"/> to false
         /// <para></para>
-        /// All the messages are prefixed with "SaveLoadManager - ". See <see cref="LogPrefix"/>
+        /// All the messages are prefixed with "SaveLoadManager - " by default
         /// </summary>
         /// <param name="message">The message to be displayed</param>
         /// <param name="color">The color of the message to be displayed</param>
