@@ -19,7 +19,7 @@ namespace StArias.API.Demo
 {
 
     /// <summary>
-    /// Wrapper created to display all the attributes related to <see cref="MyGameData"/> on the Editor individually
+    /// Wrapper created to display all the attributes related to <see cref="DemoGameData"/> on the Editor individually
     /// </summary>
     [Serializable]
     struct MyGameDataWrapper
@@ -170,10 +170,10 @@ namespace StArias.API.Demo
             Button loadDataButton = loadDataObject.GetComponent<Button>();
             loadDataButton.onClick.AddListener(() =>
             {
-                MyGameData data = SaveLoadHelper.CastFromGameData<MyGameData>(gameData);
+                DemoGameData data = SaveLoadHelper.CastFromGameData<DemoGameData>(gameData);
 
                 currentDataText.text = "";
-                FieldInfo[] fields = SaveLoadHelper.GetGameDataFields<MyGameData>();
+                FieldInfo[] fields = SaveLoadHelper.GetGameDataFields<DemoGameData>();
                 foreach (FieldInfo field in fields)
                 {
                     currentDataText.text += $"{field.Name}: {field.GetValue(data)}\n";
@@ -201,7 +201,7 @@ namespace StArias.API.Demo
                 return;
             }
 
-            MyGameData gameData = ScriptableObject.CreateInstance<MyGameData>();
+            DemoGameData gameData = ScriptableObject.CreateInstance<DemoGameData>();
             gameData.name = gameData.id = _customGameData.ID;
             gameData.health = _customGameData.health;
             gameData.mana = _customGameData.mana;
@@ -209,7 +209,7 @@ namespace StArias.API.Demo
 
             bool wasAlreadyExisting = _saveLoadManager.GetGameDataByID(gameData.id);
 
-            gameData = SaveLoadHelper.CastFromGameData<MyGameData>(_saveLoadManager.SaveNewData(gameData, _overWriteData));
+            gameData = SaveLoadHelper.CastFromGameData<DemoGameData>(_saveLoadManager.SaveNewData(gameData, _overWriteData));
 
             if (_overWriteData && wasAlreadyExisting)
                 return;

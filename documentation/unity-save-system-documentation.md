@@ -58,7 +58,7 @@ The tool is intended to be open-source to let you modify and custom the scripts 
 <table>
     <tbody style="text-align:center;">
             <td valign="top" style="text-align:left;">
-                <p style="max-width:100%;"><b>Refer to the following classes</b></p>
+                <p style="max-width:100%;"><b>Core</b></p>
             </td>
             <td style = "text-align: left;">
                 <ul>
@@ -129,10 +129,10 @@ The main script that controls the save and load functionalities. It includes pri
         </tr>
     </table>
 
-- <a name = "get_data"> **public Dictionary<string, GameData> GetGameDataCollection()**</a>: Gets a copy of the collection of the current saved data.
+- <a name = "get_data_collection"> **public Dictionary<string, GameData> GetGameDataCollection()**</a>: Gets a copy of the collection of the current saved data.
 
 ### **SaveLoadHelper.cs**:
-Class dedicated of keeping useful functionalities for the usage of the SDK. 
+Class in charge of keeping useful functionalities for the usage of the SDK. 
 
 #### Public API & Fields
 - <a name = "get_fields"> **public static FieldInfo[] GetGameDataFields<T>() where T : GameData</a>**: Collects the public fields of a certain type class that inherits GameData class. Finally, it returns an object of type [**FieldInfo[]**](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/PropertyDrawer-fieldInfo.html) containing the different fields from the class. 
