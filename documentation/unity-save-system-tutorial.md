@@ -149,11 +149,4 @@ Please, refer to:
     - GameData > DemoGameData.cs
     - Scenes > SaveSystemDemo.cs
 
-<video width=100% height=auto controls>
-    <source src="./demo-video.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-</video>
-
-<p align="center">
-<img width=100% src="https://github.com/user-attachments/assets/67a51ece-9d98-4c02-ac78-0d5c1d1febf8">
-</p>
+- [Demo Video](https://github.com/StArias-Projects/unity-save-system/raw/refs/heads/development/documentation/demo-video.mp4)
